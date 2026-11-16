@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using UserManagement.Models;
 
 namespace UserManagement.Services.Domain.Interfaces;
 
 public interface IUserLogService
 {
-    void Create(UserLog log);
+    Task CreateAsync(UserLog log);
 
-    IEnumerable<UserLog> GetAll();
+    Task<List<UserLog>> GetAllAsync();
 
-    IEnumerable<UserLog> GetByUserId(long userId);
+    Task<List<UserLog>> GetByUserIdAsync(long userId);
 
-    UserLog? GetById(long id);
+    Task<UserLog?> GetByIdAsync(long id);
 }

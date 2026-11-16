@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
@@ -18,11 +19,11 @@ public class UsersController : Controller
     }
 
     [HttpGet]
-    public ViewResult List(bool? isActive)
+    public async Task<IActionResult> List(bool? isActive = null)
     {
         var users = isActive.HasValue
-            ? _userService.FilterByActive(isActive.Value)
-            : _userService.GetAll();
+            ? await _userService.FilterByActiveAsync(isActive.Value)
+            : await _userService.GetAllAsync();
 
         var items = users.Select(p => new UserListItemViewModel
         {
@@ -49,7 +50,7 @@ public class UsersController : Controller
     }
 
     [HttpPost("add")]
-    public IActionResult Add(AddUserViewModel model)
+    public async Task<IActionResult> Add(AddUserViewModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -65,9 +66,9 @@ public class UsersController : Controller
             IsActive = model.IsActive
         };
 
-        _userService.Create(user);
+        await _userService.CreateAsync(user);
 
-        _userLogService.Create(new UserLog
+        await _userLogService.CreateAsync(new UserLog
         {
             UserId = user.Id,
             UserDisplayName = $"{user.Forename} {user.Surname}",
@@ -80,14 +81,16 @@ public class UsersController : Controller
     }
 
     [HttpGet("view/{id}")]
-    public IActionResult View(long id)
+    public async Task<IActionResult> View(long id)
     {
-        var user = _userService.GetById(id);
+        var user = await _userService.GetByIdAsync(id);
 
         if (user == null)
         {
             return NotFound();
         }
+
+        var logs = await _userLogService.GetByUserIdAsync(user.Id);
 
         var model = new ViewUserViewModel
         {
@@ -97,19 +100,18 @@ public class UsersController : Controller
             Email = user.Email,
             DateOfBirth = user.DateOfBirth,
             IsActive = user.IsActive,
-            Logs = _userLogService
-                 .GetByUserId(user.Id)
-                 .OrderByDescending(log => log.TimestampUtc)
-                 .ToList()
+            Logs = logs
+         .OrderByDescending(log => log.TimestampUtc)
+         .ToList()
         };
 
         return View(model);
     }
 
     [HttpGet("edit/{id}")]
-    public IActionResult Edit(long id)
+    public async Task<IActionResult> Edit(long id)
     {
-        var user = _userService.GetById(id);
+        var user = await _userService.GetByIdAsync(id);
 
         if (user == null)
         {
@@ -130,7 +132,7 @@ public class UsersController : Controller
     }
 
     [HttpPost("edit/{id}")]
-    public IActionResult Edit(long id, EditUserViewModel model)
+    public async Task<IActionResult> Edit(long id, EditUserViewModel model)
     {
         if (id != model.Id)
         {
@@ -142,7 +144,7 @@ public class UsersController : Controller
             return View(model);
         }
 
-        var user = _userService.GetById(id);
+        var user = await _userService.GetByIdAsync(id);
 
         if (user == null)
         {
@@ -155,9 +157,9 @@ public class UsersController : Controller
         user.DateOfBirth = model.DateOfBirth!.Value;
         user.IsActive = model.IsActive;
 
-        _userService.Update(user);
+        await _userService.UpdateAsync(user);
 
-        _userLogService.Create(new UserLog
+        await _userLogService.CreateAsync(new UserLog
         {
             UserId = user.Id,
             UserDisplayName = $"{user.Forename} {user.Surname}",
@@ -170,9 +172,9 @@ public class UsersController : Controller
     }
 
     [HttpGet("delete/{id}")]
-    public IActionResult Delete(long id)
+    public async Task<IActionResult> Delete(long id)
     {
-        var user = _userService.GetById(id);
+        var user = await _userService.GetByIdAsync(id);
 
         if (user == null)
         {
@@ -191,21 +193,21 @@ public class UsersController : Controller
     }
 
     [HttpPost("delete/{id}")]
-    public IActionResult Delete(long id, DeleteUserViewModel model)
+    public async Task<IActionResult> Delete(long id, DeleteUserViewModel model)
     {
         if (id != model.Id)
         {
             return BadRequest();
         }
 
-        var user = _userService.GetById(id);
+        var user = await _userService.GetByIdAsync(id);
 
         if (user == null)
         {
             return NotFound();
         }
 
-        _userLogService.Create(new UserLog
+        await _userLogService.CreateAsync(new UserLog
         {
             UserId = user.Id,
             UserDisplayName = $"{user.Forename} {user.Surname}",
@@ -213,7 +215,8 @@ public class UsersController : Controller
             Details = $"User {user.Email} was deleted.",
             TimestampUtc = DateTime.UtcNow
         });
-        _userService.Delete(user);
+
+        await _userService.DeleteAsync(user);
 
         return RedirectToAction(nameof(List));
     }

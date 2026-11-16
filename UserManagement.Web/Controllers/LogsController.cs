@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Logs;
 
@@ -16,17 +17,19 @@ public class LogsController : Controller
     }
 
     [HttpGet]
-    public ViewResult List(int page = 1)
+    [HttpGet]
+    public async Task<IActionResult> List(int page = 1)
     {
         const int pageSize = 10;
 
-        var logs = _userLogService
-            .GetAll()
+        var logs = await _userLogService.GetAllAsync();
+
+        var orderedLogs = logs
             .OrderByDescending(log => log.TimestampUtc);
 
-        var totalLogs = logs.Count();
+        var totalLogs = orderedLogs.Count();
 
-        var items = logs
+        var items = orderedLogs
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(log => new LogListItemViewModel
@@ -51,9 +54,9 @@ public class LogsController : Controller
     }
 
     [HttpGet("view/{id}")]
-    public IActionResult View(long id)
+    public async Task<IActionResult> View(long id)
     {
-        var log = _userLogService.GetById(id);
+        var log = await _userLogService.GetByIdAsync(id);
 
         if (log == null)
         {

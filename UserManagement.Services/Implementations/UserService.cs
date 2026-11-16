@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using UserManagement.Data;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
@@ -16,31 +18,40 @@ public class UserService : IUserService
     /// </summary>
     /// <param name="isActive"></param>
     /// <returns></returns>
-    public IEnumerable<User> FilterByActive(bool isActive)
+    public async Task<List<User>> FilterByActiveAsync(bool isActive)
     {
-        return _dataAccess
-        .GetAll<User>()
-        .Where(user => user.IsActive == isActive);
-    }
-
-    public IEnumerable<User> GetAll() => _dataAccess.GetAll<User>();
-
-    public void Create(User user)
-    {
-        _dataAccess.Create(user);
-    }
-    public User? GetById(long id)
-    {
-        return _dataAccess
+        return await _dataAccess
             .GetAll<User>()
-            .SingleOrDefault(user => user.Id == id);
+            .Where(user => user.IsActive == isActive)
+            .ToListAsync();
     }
-    public void Update(User user)
+
+    public async Task<List<User>> GetAllAsync()
     {
-        _dataAccess.Update(user);
+        return await _dataAccess
+            .GetAll<User>()
+            .ToListAsync();
     }
-    public void Delete(User user)
+
+    public async Task<User?> GetByIdAsync(long id)
     {
-        _dataAccess.Delete(user);
+        return await _dataAccess
+            .GetAll<User>()
+            .SingleOrDefaultAsync(user => user.Id == id);
+    }
+
+    public async Task CreateAsync(User user)
+    {
+        await _dataAccess.CreateAsync(user);
+    }
+
+    public async Task UpdateAsync(User user)
+    {
+        await _dataAccess.UpdateAsync(user);
+    }
+
+    public async Task DeleteAsync(User user)
+    {
+        await _dataAccess.DeleteAsync(user);
     }
 }
