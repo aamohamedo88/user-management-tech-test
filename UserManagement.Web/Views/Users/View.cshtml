@@ -26,3 +26,35 @@
    class="btn btn-secondary">
     Back to List
 </a>
+
+<h3>Activity History</h3>
+
+@if (Model.Logs.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Details</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var log in Model.Logs)
+                {
+                    <tr>
+                        <td>@log.Action</td>
+                        <td>@log.Details</td>
+                        <td>@log.TimestampUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p>No activity has been recorded for this user.</p>
+}

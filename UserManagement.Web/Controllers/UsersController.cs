@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
@@ -8,7 +9,13 @@ namespace UserManagement.Web.Controllers;
 public class UsersController : Controller
 {
     private readonly IUserService _userService;
-    public UsersController(IUserService userService) => _userService = userService;
+    private readonly IUserLogService _userLogService;
+
+    public UsersController(IUserService userService, IUserLogService userLogService)
+    {
+        _userService = userService;
+        _userLogService = userLogService;
+    }
 
     [HttpGet]
     public ViewResult List(bool? isActive)
@@ -60,6 +67,15 @@ public class UsersController : Controller
 
         _userService.Create(user);
 
+        _userLogService.Create(new UserLog
+        {
+            UserId = user.Id,
+            UserDisplayName = $"{user.Forename} {user.Surname}",
+            Action = "Created",
+            Details = $"User {user.Email} was created.",
+            TimestampUtc = DateTime.UtcNow
+        });
+
         return RedirectToAction(nameof(List));
     }
 
@@ -80,7 +96,11 @@ public class UsersController : Controller
             Surname = user.Surname,
             Email = user.Email,
             DateOfBirth = user.DateOfBirth,
-            IsActive = user.IsActive
+            IsActive = user.IsActive,
+            Logs = _userLogService
+                 .GetByUserId(user.Id)
+                 .OrderByDescending(log => log.TimestampUtc)
+                 .ToList()
         };
 
         return View(model);
@@ -137,6 +157,15 @@ public class UsersController : Controller
 
         _userService.Update(user);
 
+        _userLogService.Create(new UserLog
+        {
+            UserId = user.Id,
+            UserDisplayName = $"{user.Forename} {user.Surname}",
+            Action = "Updated",
+            Details = $"User {user.Email} was updated.",
+            TimestampUtc = DateTime.UtcNow
+        });
+
         return RedirectToAction(nameof(List));
     }
 
@@ -176,6 +205,14 @@ public class UsersController : Controller
             return NotFound();
         }
 
+        _userLogService.Create(new UserLog
+        {
+            UserId = user.Id,
+            UserDisplayName = $"{user.Forename} {user.Surname}",
+            Action = "Deleted",
+            Details = $"User {user.Email} was deleted.",
+            TimestampUtc = DateTime.UtcNow
+        });
         _userService.Delete(user);
 
         return RedirectToAction(nameof(List));

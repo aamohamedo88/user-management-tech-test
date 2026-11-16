@@ -1,0 +1,33 @@
+﻿@model UserManagement.Web.Models.Logs.LogDetailsViewModel
+
+<h2>Log Details</h2>
+
+<dl class="row">
+
+    <dt class="col-sm-3">Log ID</dt>
+    <dd class="col-sm-9">@Model.Id</dd>
+
+    <dt class="col-sm-3">User</dt>
+    <dd class="col-sm-9">@Model.UserDisplayName</dd>
+
+    <dt class="col-sm-3">User ID</dt>
+    <dd class="col-sm-9">@Model.UserId</dd>
+
+    <dt class="col-sm-3">Action</dt>
+    <dd class="col-sm-9">@Model.Action</dd>
+
+    <dt class="col-sm-3">Details</dt>
+    <dd class="col-sm-9">@Model.Details</dd>
+
+    <dt class="col-sm-3">Date</dt>
+    <dd class="col-sm-9">
+        @Model.TimestampUtc.ToString("dd/MM/yyyy HH:mm:ss")
+    </dd>
+
+</dl>
+
+<a asp-controller="Logs"
+   asp-action="List"
+   class="btn btn-secondary">
+    Back to Logs
+</a>
